@@ -19,11 +19,11 @@
 import wx
 
 # load modules
-from ids import *
-import mwx
-import images
-import config
-import libs
+from gui.ids import *
+import gui.mwx as mwx
+import gui.images as images
+import gui.config as config
+import gui.libs as libs 
 import mspy
 
 

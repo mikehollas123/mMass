@@ -25,7 +25,7 @@ import xml.dom.minidom
 # SET VERSION
 # -----------
 
-version = '5.5.0'
+version = '6.0.0a'
 nightbuild = ''
 
 
@@ -61,15 +61,15 @@ else:
         path = os.path.join(confdir, folder)
         if os.path.isdir(path):
             confdir = path
-        if os.path.isfile(path):
-            break
+        #if os.path.isopen(path):
+        #    break
     confdir = os.path.join(confdir, 'configs')
     if not os.path.exists(confdir):
         try: os.mkdir(confdir)
         except: pass
 
 if not os.path.exists(confdir):
-    raise IOError, "Configuration folder cannot be found!"
+    raise IOError( "Configuration folder cannot be found!")
 
 
 # INIT DEFAULT VALUES
@@ -1339,11 +1339,11 @@ def saveConfig(path=os.path.join(confdir, 'config.xml')):
     
     # save config file
     try:
-        save = file(path, 'w')
-        save.write(buff.encode("utf-8"))
+        save = open(path, 'w')
+        save.write(buff)
         save.close()
         return True
-    except:
+    except Exception as e:
         return False
 # ----
 

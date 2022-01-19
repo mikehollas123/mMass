@@ -617,11 +617,16 @@ m_arrayd *signal_smooth_ma( m_arrayd *p_signal, int window, int cycles )
     if ( window % 2 != 0) {
         window -= 1;
     }
-    
+
+
     // make kernel
     ksize = window + 1;
-    ksum = window + 1;
-    double kernel[ksize];
+    ksum = window + 1;    
+
+
+    double *kernel = (double*) malloc (ksize * sizeof(double));
+
+
     for ( i = 0; i <= ksize; ++i ) {
         kernel[i] = 1/ksum;
     }
@@ -680,7 +685,12 @@ m_arrayd *signal_smooth_ga( m_arrayd *p_signal, int window, int cycles )
     // make kernel
     ksize = window + 1;
     ksum = 0;
-    double kernel[ksize];
+
+
+
+    double *kernel = (double*) malloc (ksize * sizeof(double));
+
+    //double kernel[ksize];
     for ( i = 0; i <= ksize; ++i ) {
         r = (i - (ksize-1)/2.0);
         k = exp(-(r*r/(ksize*ksize/16.0)));
@@ -1502,7 +1512,7 @@ m_arrayd *signal_profile_to_raster( m_arrayd *p_peaks, m_arrayd *p_raster, doubl
     return p_profile;
 }
 
-m_arrayd *signal_profile( m_arrayd *p_peaks, int points, double noise, int shape )
+m_arrayd *signal_proopen( m_arrayd *p_peaks, int points, double noise, int shape )
 {
     
     m_arrayd *p_profile, *p_raster;
@@ -1697,7 +1707,7 @@ PyObject *list_mi2py( m_arrayi *p_inarr )
     else if ( p_inarr->dim == 1 ) {
         p_outlist = PyList_New( p_inarr->len );
         for ( i = 0; i < p_inarr->len; ++i ) {
-            p_item = PyInt_FromLong( p_inarr->data[i] );
+            p_item = PyLong_FromLong( p_inarr->data[i] );
             PyList_SetItem( p_outlist, i, p_item );
         }
     }
@@ -1708,7 +1718,7 @@ PyObject *list_mi2py( m_arrayi *p_inarr )
         for ( i = 0; i < p_inarr->len; ++i ) {
             p_inner = PyList_New( p_inarr->cell );
             for ( j = 0; j < p_inarr->cell; ++j ) {
-                p_item = PyInt_FromLong( p_inarr->data[i*p_inarr->cell+j] );
+                p_item = PyLong_FromLong( p_inarr->data[i*p_inarr->cell+j] );
                 PyList_SetItem( p_inner, j,  p_item);
             }
             PyList_Append(p_outlist, p_inner);
@@ -2394,7 +2404,7 @@ static PyObject *_wrap_signal_gausslorentzian( PyObject *self, PyObject *args )
     return PyArray_Return(p_results);
 }
 
-static PyObject *_wrap_signal_profile( PyObject *self, PyObject *args )
+static PyObject *_wrap_signal_proopen( PyObject *self, PyObject *args )
 {
     PyArrayObject *p_peaks, *p_results;
     m_arrayd *p_mpeaks, *p_mresults;
@@ -2411,7 +2421,7 @@ static PyObject *_wrap_signal_profile( PyObject *self, PyObject *args )
     p_mpeaks = array_py2md(p_peaks);
     
     // make profile
-    p_mresults = signal_profile( p_mpeaks, points, noise, shape );
+    p_mresults = signal_proopen( p_mpeaks, points, noise, shape );
     
     // make numpy array
     p_results = array_md2py( p_mresults );
@@ -2548,7 +2558,7 @@ static PyMethodDef calculations_methods[] = {
    {"signal_gaussian", _wrap_signal_gaussian, METH_VARARGS, "signal_gaussian( double, double, double, double, int, double )"},
    {"signal_lorentzian", _wrap_signal_lorentzian, METH_VARARGS, "signal_lorentzian( double, double, double, double, int, double )"},
    {"signal_gausslorentzian", _wrap_signal_gausslorentzian, METH_VARARGS, "signal_gausslorentzian( double, double, double, double, int, double )"},
-   {"signal_profile", _wrap_signal_profile, METH_VARARGS, "signal_profile( PyArray, int, double, int )"},
+   {"signal_profile", _wrap_signal_profile, METH_VARARGS, "signal_proopen( PyArray, int, double, int )"},
    {"signal_profile_to_raster", _wrap_signal_profile_to_raster, METH_VARARGS, "signal_profile_to_raster( PyArray, PyArray, double, int )"},
    
    {"formula_composition", _wrap_formula_composition, METH_VARARGS, "formula_composition( PyTupleObject, PyTupleObject, PyTupleObject, double, double, int )"},
@@ -2556,7 +2566,25 @@ static PyMethodDef calculations_methods[] = {
    {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initcalculations(void) {
+
+static struct PyModuleDef spammodule = {
+    PyModuleDef_HEAD_INIT,
+    "calculations",   /* name of module */
+    NULL, /* module documentation, may be NULL */
+    -1,       /* size of per-interpreter state of the module,
+                 or -1 if the module keeps state in global variables. */
+    calculations_methods
+};
+
+PyMODINIT_FUNC
+PyInit_calculations(void)
+{
+    return PyModule_Create(&spammodule);
+}
+
+
+/*PyMODINIT_FUNC initcalculations(void) {
     Py_InitModule3("calculations", calculations_methods,"");
     import_array();
 }
+*/

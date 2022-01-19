@@ -21,11 +21,11 @@ import numpy
 import copy
 
 # load modules
-from ids import *
-import mwx
-import images
-import config
-import doc
+from gui.ids import *
+import gui.mwx as mwx
+import gui.images as images
+import gui.config as config
+import gui.doc as doc
 import mspy
 import mspy.plot
 
@@ -37,7 +37,7 @@ class panelMassCalculator(wx.MiniFrame):
     """Mass calculator tools."""
     
     def __init__(self, parent, tool='pattern'):
-        wx.MiniFrame.__init__(self, parent, -1, 'Mass Calculator', size=(400, 300), style=wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+        wx.MiniFrame.__init__(self, parent, -1, 'Mass Calculator', size=(400, 300), style=wx.DEFAULT_FRAME_STYLE & ~ ( wx.MAXIMIZE_BOX))
         
         self.parent = parent
         
@@ -541,7 +541,7 @@ class panelMassCalculator(wx.MiniFrame):
             return
         
         # re-calculate pattern profile
-        self.makeProfile()
+        self.makeProopen()
         
         # update gui
         self.updatePatternCanvas(rescale=False)
@@ -814,7 +814,7 @@ class panelMassCalculator(wx.MiniFrame):
             return
         
         # add new data
-        format = '%0.' + `config.main['mzDigits']` + 'f'
+        format = '%0.' + config.main['mzDigits'] + 'f'
         for row, ion in enumerate(self.currentIons):
             
             # format data
@@ -1000,7 +1000,7 @@ class panelMassCalculator(wx.MiniFrame):
             )
             
             # make profile
-            self.makeProfile()
+            self.makeProopen()
             
         # task canceled
         except mspy.ForceQuit:
@@ -1011,7 +1011,7 @@ class panelMassCalculator(wx.MiniFrame):
     # ----
     
     
-    def makeProfile(self):
+    def makeProopen(self):
         """Generate pattern profile."""
         
         self.currentPatternProfile = None
@@ -1028,7 +1028,7 @@ class panelMassCalculator(wx.MiniFrame):
             charge = self.currentIon[3]
         
         # make profile
-        self.currentPatternProfile = mspy.profile(
+        self.currentPatternProfile = mspy.proopen(
             peaklist = self.currentPattern,
             fwhm = config.massCalculator['patternFwhm'],
             points = 20,

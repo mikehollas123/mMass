@@ -19,9 +19,9 @@
 import wx
 
 # load modules
-import mwx
-import config
-import libs
+import gui.mwx as mwx
+import gui.config as config
+import gui.libs as libs
 import mspy
 
 

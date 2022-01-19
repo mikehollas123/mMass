@@ -16,6 +16,7 @@
 # -------------------------------------------------------------------------
 
 # load libs
+from io import FileIO
 import xml.sax
 import xml.dom.minidom
 import base64
@@ -27,12 +28,12 @@ import numpy
 from copy import deepcopy
 
 # load stopper
-from mod_stopper import CHECK_FORCE_QUIT
+from mspy.mod_stopper import CHECK_FORCE_QUIT
 
 # load objects
-import obj_peak
-import obj_peaklist
-import obj_scan
+import mspy.obj_peak as obj_peak
+import mspy.obj_peaklist as obj_peaklist
+import mspy.obj_scan as obj_scan
 
 # compile basic patterns
 SCAN_NUMBER_PATTERN = re.compile('scan=([0-9]+)')
@@ -52,7 +53,7 @@ class parseMZML():
         
         # check path
         if not os.path.exists(path):
-            raise IOError, 'File not found! --> ' + self.path
+            raise IOError('File not found! --> ' + self.path)
     # ----
     
     
@@ -66,9 +67,9 @@ class parseMZML():
         
         # parse document
         try:
-            document = file(self.path)
-            parser.parse(document)
-            document.close()
+       
+            parser.parse(self.path)
+  
             self._scans = handler.data
         except xml.sax.SAXException:
             self._scans = False
@@ -100,9 +101,8 @@ class parseMZML():
         
         # parse document
         try:
-            document = file(self.path)
-            parser.parse(document)
-            document.close()
+                parser.parse(self.path)
+         
         except stopParsing:
             self._info = handler.data
         except xml.sax.SAXException:
@@ -126,11 +126,13 @@ class parseMZML():
         
         # parse document
         try:
-            document = file(self.path)
-            parser.parse(document)
-            document.close()
+
+           
+            parser.parse(self.path)
             self._scanlist = handler.data
-        except xml.sax.SAXException:
+
+        except xml.sax.SAXException as e:
+            print(e)
             self._scanlist = False
         
         return self._scanlist
@@ -150,9 +152,7 @@ class parseMZML():
             parser = xml.sax.make_parser()
             parser.setContentHandler(handler)
             try:
-                document = file(self.path)
-                parser.parse(document)
-                document.close()
+                parser.parse(self.path)
                 data = handler.data
             except stopParsing:
                 data = handler.data
@@ -173,12 +173,19 @@ class parseMZML():
         
         # parse peaks
         points = self._parsePoints(scanData)
+
+        newpoints = []
+
         if scanData['spectrumType'] == 'discrete':
             for x, p in enumerate(points):
-                points[x] = obj_peak.peak(p[0], p[1])
-            scan = obj_scan.scan(peaklist=obj_peaklist.peaklist(points))
+           
+                newpoints.append(obj_peak.peak(p[0], p[1]))
+            scan = obj_scan.scan(peaklist=obj_peaklist.peaklist(newpoints))
         else:
-            scan = obj_scan.scan(profile=points)
+             for x, p in enumerate(points):
+           
+                newpoints.append(obj_peak.peak(p[0], p[1]))
+             scan = obj_scan.scan(profile=newpoints)
         
         # set metadata
         scan.title = scanData['title']
@@ -225,9 +232,9 @@ class parseMZML():
         
         # convert from binary
         count = len(mzData) / struct.calcsize('<' + mzPrecision)
-        mzData = struct.unpack('<' + mzPrecision * count, mzData[0:len(mzData)])
+        mzData = struct.unpack('<' + str(int(count)) + mzPrecision , mzData[0:len(mzData)])
         count = len(intData) / struct.calcsize('<' + intPrecision)
-        intData = struct.unpack('<' + intPrecision * count, intData[0:len(intData)])
+        intData = struct.unpack('<' + str(int(count)) +  intPrecision, intData[0:len(intData)])
         
         # format
         if scanData['spectrumType'] == 'discrete':
@@ -620,7 +627,7 @@ class scanHandler(xml.sax.handler.ContentHandler):
         
         # stop parsing
         if name == 'spectrum' and self._isMatch:
-            raise stopParsing()
+            raise stopParsing("test")
         
         # end spectrum element
         elif name == 'spectrum':
